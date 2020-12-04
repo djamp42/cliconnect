@@ -89,4 +89,4 @@ def devicelogin(deviceip, loginlist, conntype="SSH"):
                     return netmikodevice, conntype
                 else:
                     # If you get this far SSH didn't work, Recursive function, this time using telnet,
-                    return devicelogin(deviceip, "TELNET")
+                    return devicelogin(deviceip, loginlist, "TELNET")
