@@ -1,6 +1,7 @@
 from netmiko import Netmiko
 from netmiko import NetMikoAuthenticationException
 from netmiko import NetMikoTimeoutException
+from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException, NoValidConnectionsError
 import logging
 
