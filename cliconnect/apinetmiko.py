@@ -39,7 +39,7 @@ def devicelogin(deviceip, loginlist, conntype="SSH"):
     elif conntype == "TELNET":
         netmikotype = "cisco_ios_telnet"
     elif conntype == "WLC":
-        netmikotype = "cisco_wlc"
+        netmikotype = "cisco_wlc_ssh"
     elif conntype == "LINUX":
         netmikotype = "linux"
     else:
