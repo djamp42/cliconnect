@@ -8,7 +8,6 @@ import logging
 
 def deviceconnection(deviceip, loginUser, loginPass, netmikotype):
     """ This function actually does the device connecting"""
-
     netmikohost = {
         "host": deviceip,
         "username": loginUser,
@@ -19,6 +18,9 @@ def deviceconnection(deviceip, loginUser, loginPass, netmikotype):
         "banner_timeout": 7,
         "global_delay_factor": 2
     }
+    if netmikotype == "linux":
+        netmikohost['secret'] = loginPass
+
     print(deviceip + " --Connecting(" + netmikotype + "): " + loginUser)
     netmikodevice = Netmiko(**netmikohost)
     return netmikodevice
