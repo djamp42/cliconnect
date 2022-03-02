@@ -21,8 +21,8 @@ def deviceconnection(deviceip, loginUser, loginPass, netmikotype):
     if netmikotype == "linux":
         netmikohost['secret'] = loginPass
 
-    print(f"{deviceip}: Connecting ({conntype}) - {username}")
-    logging.error(f"{deviceip}: Connecting ({conntype}) - {username}")
+    print(f"{deviceip}: Connecting ({netmikotype}) - {username}")
+    logging.error(f"{deviceip}: Connecting ({netmikotype}) - {username}")
     netmikodevice = Netmiko(**netmikohost)
     return netmikodevice
 
