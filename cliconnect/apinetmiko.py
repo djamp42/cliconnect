@@ -21,20 +21,21 @@ def deviceconnection(deviceip, loginUser, loginPass, netmikotype):
     if netmikotype == "linux":
         netmikohost['secret'] = loginPass
 
-    print(deviceip + " --Connecting(" + netmikotype + "): " + loginUser)
+    print(f"{deviceip}: Connecting ({conntype}) - {username}")
+    logging.error(f"{deviceip}: Connecting ({conntype}) - {username}")
     netmikodevice = Netmiko(**netmikohost)
     return netmikodevice
 
 
-def devicelogin(deviceip, loginlist, conntype="SSH"):
+def devicelogin(deviceip, logindict, conntype="SSH"):
     """ This recursive function tries to connect to a device using SSH if unsuccessful it then tries
     Telnet. It also tries a list of username/password from the provided loginlist
     if connection is un-successful it will try the others
     Returns Netmiko Device and Connection Status
-    loginlist = [{"admin": "password1"},
-                 {"admin": "password2"},
-                 {"administrator": "password3"},
-                 ]
+    logindict = {"admin": "password1"},
+                {"admin": "password2"},
+                {"administrator": "password3"}
+
    """
     if conntype == "SSH":
         netmikotype = "cisco_ios"
@@ -48,48 +49,53 @@ def devicelogin(deviceip, loginlist, conntype="SSH"):
         netmikotype = "cisco_ios_telnet"
 
     # Try to connect using each login
-    for loginentry in loginlist:
-        for username, password in loginentry.items():
-            try:
-                netmikodevice = deviceconnection(deviceip,
-                                                 username,
-                                                 password,
-                                                 netmikotype
-                                                 )
-                print(deviceip + " --Connected(" + conntype + "): {}".format(username))
-                logging.info(deviceip + " --Connected(" + conntype + "): {}".format(username))
-                return netmikodevice
+    for username, password in logindict.items():
+        try:
+            netmikodevice = deviceconnection(deviceip,
+                                             username,
+                                             password,
+                                             netmikotype
+                                             )
+            print(f"{deviceip}: Connected ({conntype}) - {username}")
+            logging.info(f"{deviceip}: Connected ({conntype}) - {username}")
+            return netmikodevice
 
-            except NetMikoAuthenticationException:
-                logging.error(deviceip + " --Error: Invalid User {}".format(username))
+        except NetMikoAuthenticationException:
+            print(f"{deviceip}: Authentication Error ({conntype}) - {username}")
+            logging.error(f"{deviceip}: Authentication Error ({conntype}) - {username}")
 
-            except ConnectionAbortedError:
-                print(deviceip + " --Error: Connection Aborted")
-                logging.error(deviceip + " --Error: Connection Aborted")
-                netmikodevice = None
-                conntype = "ERROR"
-                return netmikodevice
+        except ConnectionRefusedError:
+            print(f"{deviceip}: Unable to Connect ({conntype}) - {username}")
+            logging.error(f"{deviceip}: Unable to Connect ({conntype}) - {username}")
 
-            except EOFError:
-                print(deviceip + " --Error: Invalid Users")
-                logging.error(deviceip + " --Error: Invalid Users")
-                netmikodevice = None
-                conntype = "ERROR"
-                continue
+        except ConnectionAbortedError:
+            print(f"{deviceip}: Connection Aborted ({conntype}) - {username}")
+            logging.error(f"{deviceip}: Connection Aborted  ({conntype}) - {username}")
+            netmikodevice = None
+            conntype = "ERROR"
+            return netmikodevice
 
-            except ValueError:
-                print(deviceip + " --Error: Can not find Prompt")
-                logging.error(deviceip + " --Error: Can not find Prompt")
+        except EOFError:
+            print(f"{deviceip}: Unable to find valid Login ({conntype}) - {username}")
+            logging.error(f"{deviceip}: Unable to find valid Login ({conntype}) - {username}")
+            netmikodevice = None
+            conntype = "ERROR"
+            continue
+
+        except ValueError:
+            print(f"{deviceip}: Unable to find prompt ({conntype}) - {username}")
+            logging.info(f"{deviceip}: Unable to find prompt ({conntype}) - {username}")
+            netmikodevice = None
+            conntype = "ERROR"
+            return netmikodevice, conntype
+
+        except (SSHException, NetMikoTimeoutException, NoValidConnectionsError, TimeoutError):
+            print(f"{deviceip}: Not Responding ({conntype}) - {username}")
+            logging.info(f"{deviceip}: Not Responding ({conntype}) - {username}")
+            if conntype == "TELNET":
                 netmikodevice = None
                 conntype = "ERROR"
                 return netmikodevice, conntype
-
-            except (SSHException, NetMikoTimeoutException, NoValidConnectionsError, TimeoutError):
-                logging.error(deviceip + " --Error({}): Not Responding".format(conntype))
-                if conntype == "TELNET":
-                    netmikodevice = None
-                    conntype = "ERROR"
-                    return netmikodevice, conntype
-                else:
-                    # If you get this far SSH didn't work, Recursive function, this time using telnet,
-                    return devicelogin(deviceip, loginlist, "TELNET")
+            else:
+                # If you get this far SSH didn't work, Recursive function, this time using telnet,
+                return devicelogin(deviceip, logindict, "TELNET")

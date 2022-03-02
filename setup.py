@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cliconnect',
-    version='1.5',
+    version='22.3.2',
     packages=['cliconnect'],
     url='',
     license='GNU GPLv3',
