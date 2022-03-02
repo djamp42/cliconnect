@@ -6,12 +6,12 @@ from paramiko.ssh_exception import SSHException, NoValidConnectionsError
 import logging
 
 
-def deviceconnection(deviceip, loginUser, loginPass, netmikotype):
+def deviceconnection(deviceip, username, password, netmikotype):
     """ This function actually does the device connecting"""
     netmikohost = {
         "host": deviceip,
-        "username": loginUser,
-        "password": loginPass,
+        "username": username,
+        "password": password,
         "device_type": netmikotype,
         "verbose": True,
         "auth_timeout": 60,
@@ -19,7 +19,7 @@ def deviceconnection(deviceip, loginUser, loginPass, netmikotype):
         "global_delay_factor": 2
     }
     if netmikotype == "linux":
-        netmikohost['secret'] = loginPass
+        netmikohost['secret'] = password
 
     print(f"{deviceip}: Connecting ({netmikotype}) - {username}")
     logging.error(f"{deviceip}: Connecting ({netmikotype}) - {username}")
